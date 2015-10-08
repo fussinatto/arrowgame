@@ -5,59 +5,75 @@
 
 	/* global Power0, Power1*/
 
+	// DOM
+	var obj = document.getElementById('arrow');
+
 	// CONST
-	var WH = 600,
+	var WH = 900,
 		WW = 600,
 		VALOCITY = 10;
 
-	// DOM
-	var canvas = document.getElementById('playground'),
-		ctx = canvas.getContext('2d');
-
 	// VARS
-	var	dist = WW,
+	var pressed = false,
+		raf,
+		dist = WW,
 		speed = {val: 0};
 
-	canvas.height = WH;
-	canvas.width = WW;
+	TweenMax.set(obj,{x:310,y:210}); // Start
 
-	
+	var dx = 100*(1-Math.sqrt(2)/2);
+
 
 	function onMouseDown(e) {
 
+		pressed = true;
+		window.cancelAnimationFrame(raf);
 		TweenMax.killTweensOf(speed);
 		TweenMax.to(speed, (100 - speed.val) / 100, {
 			val: 100,
-			ease: Power0.easeNone
+			ease: Power0.easeNone,
+			onUpdate: updateArrow,
+			onUpdateParams: [speed],
+			onComplete: continueFullSpeed
 		});
 	}
 
 	function onMouseUp(e) {
 
+		pressed = false;
+		window.cancelAnimationFrame(raf);
 		TweenMax.killTweensOf(speed);
 		TweenMax.to(speed, speed.val / 100 * 1, {
 			val: 0,
-			ease: Power0.easeNone
+			ease: Power0.easeNone,
+			onUpdate: updateArrow,
+			onUpdateParams: [speed],
+			onComplete: continueFullSpeed
 		});
 	}
 
-	function draw (dist) {
-		ctx.clearRect(0,0,WW,WH);
-		ctx.fillRect(dist-10,WH/2-10,20,20);
+	function updateArrow(speed) {
+		updatePos(speed, false);
 	}
 
-	function updatePos (){
+	function continueFullSpeed() {
+		updatePos(speed, true);
+	}
+
+	function updatePos (speed, callraf){
+		callraf = callraf || false;
 
 		dist += (speed.val-50)/VALOCITY;
+		TweenMax.set(obj,{x:dist}); 
 
-		if(dist > 0 && dist < WW){
-			draw(dist);
-			window.requestAnimationFrame(updatePos);
-		} else {
+		if(dist <= 0 || dist >= WW){
 			loser();
 			return;
+		} else {
+			if (callraf) raf =  window.requestAnimationFrame(continueFullSpeed);
 		}
 	}
+
 
 
 	function loser () {
@@ -71,7 +87,7 @@
 	function init () {
 		window.addEventListener('mousedown', onMouseDown);
 		window.addEventListener('mouseup', onMouseUp);
-		updatePos();
+		onMouseUp(null);
 	}
 
 	init();
