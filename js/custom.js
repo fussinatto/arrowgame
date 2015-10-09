@@ -16,7 +16,9 @@
 
 	// VARS
 	var	dist = WW,
-		speed = {val: 0};
+		rotation = 1,
+		speed = {val: 0},
+		pressed = false;
 
 	canvas.height = WH;
 	canvas.width = WW;
@@ -24,6 +26,7 @@
 	
 
 	function onMouseDown(e) {
+		pressed = true;
 
 		TweenMax.killTweensOf(speed);
 		TweenMax.to(speed, (100 - speed.val) / 100, {
@@ -34,6 +37,8 @@
 
 	function onMouseUp(e) {
 
+		pressed = false;
+
 		TweenMax.killTweensOf(speed);
 		TweenMax.to(speed, speed.val / 100 * 1, {
 			val: 0,
@@ -42,13 +47,25 @@
 	}
 
 	function draw (dist) {
+		ctx.save();
+
 		ctx.clearRect(0,0,WW,WH);
-		ctx.fillRect(dist-10,WH/2-10,20,20);
+		// ctx.fillRect(dist-10,WH/2-10,20,20);
+		drawRotatedRect(dist-10,WH/2-10,20,20,-rotation/10*90)
+
+		ctx.restore();
 	}
 
 	function updatePos (){
 
 		dist += (speed.val-50)/VALOCITY;
+
+		if(pressed && rotation< 10){
+			rotation++;
+		} else if(!pressed && rotation>0) {
+			rotation--;
+		}
+
 
 		if(dist > 0 && dist < WW){
 			draw(dist);
@@ -58,6 +75,18 @@
 			return;
 		}
 	}
+
+	function drawRotatedRect(x,y,width,height,degrees){
+
+        ctx.beginPath();
+        ctx.translate( x+width/2, y+height/2 );
+        ctx.rotate(degrees*Math.PI/180);
+        ctx.rect( -width/2, -height/2, width,height);
+        ctx.fillStyle="gold";
+        ctx.fill();
+
+    }
+
 
 
 	function loser () {
