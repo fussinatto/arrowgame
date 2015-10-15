@@ -8,6 +8,7 @@
 	// CONST
 	var WH = 600,
 		WW = 600,
+		MAX_ROTATION = 14,
 		VALOCITY = 10;
 
 	// DOM
@@ -18,7 +19,13 @@
 	var	dist = WW,
 		rotation = 1,
 		speed = {val: 0},
-		pressed = false;
+		pressed = false,
+		children = 10,
+		history = {
+			dist:[],
+			speed:[],
+			rot:[]
+		};
 
 	canvas.height = WH;
 	canvas.width = WW;
@@ -46,12 +53,36 @@
 		});
 	}
 
+	var counter = 0;
 	function draw (dist) {
 		ctx.save();
 
 		ctx.clearRect(0,0,WW,WH);
-		// ctx.fillRect(dist-10,WH/2-10,20,20);
-		drawRotatedRect(dist-10,WH/2-10,20,20,-rotation/10*90)
+		drawRotatedRect(dist-10,WH/2-10,20,20, rotation/MAX_ROTATION*90);
+
+		counter++;
+		if(counter==5){
+			history.dist.unshift(dist-10);
+			history.speed.unshift(speed.val);
+			history.rot.unshift(rotation);
+			counter=0;
+		}
+		// History menagment
+
+		if(history.dist.length >children){ // they should all have same length
+			history.dist.pop();
+			history.speed.pop();
+			history.rot.pop();
+		}
+
+		// Children 
+		var chX, chY, chR;
+		for (var i = 0; i < children; i++) {
+			// chX = dist-10 + (i+1)*( 20 - 0.4*history.dist[i]); // i-1 -> starting from 1, not 0
+			chX = history.dist[i]; // i-1 -> starting from 1, not 0
+			chY = WH/2-10 + (i+1)*21;
+			drawRotatedRect(chX,chY,20,20, history.rot[i]/MAX_ROTATION*90);
+		};
 
 		ctx.restore();
 	}
@@ -60,7 +91,7 @@
 
 		dist += (speed.val-50)/VALOCITY;
 
-		if(pressed && rotation< 10){
+		if(pressed && rotation< MAX_ROTATION){
 			rotation++;
 		} else if(!pressed && rotation>0) {
 			rotation--;
@@ -77,13 +108,14 @@
 	}
 
 	function drawRotatedRect(x,y,width,height,degrees){
-
+		ctx.save();
         ctx.beginPath();
         ctx.translate( x+width/2, y+height/2 );
         ctx.rotate(degrees*Math.PI/180);
         ctx.rect( -width/2, -height/2, width,height);
-        ctx.fillStyle="gold";
+        ctx.fillStyle="red";
         ctx.fill();
+        ctx.restore();
 
     }
 
